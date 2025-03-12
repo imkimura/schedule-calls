@@ -1,0 +1,62 @@
+version: '3'
+
+services:
+  api:
+    build:
+      context: ./crm-schedule-api
+    container_name: schedule-api
+    restart: unless-stopped
+    working_dir: /var/www
+    volumes:
+      - ./crm-schedule-api/:/var/www
+    networks:
+      - app-schedule
+    depends_on:
+      - db
+
+  nginx:
+    image: nginx:alpine
+    container_name: schedule-nginx
+    ports:
+      - "8000:80"
+      - "3000:81"
+    volumes:
+      - ./crm-schedule-api/:/var/www
+      - ./docker/nginx/:/etc/nginx/conf.d/
+    networks:
+      - app-schedule
+    depends_on:
+      - api
+      - client
+
+  client:
+    build:
+      context: ./client
+    container_name: schedule-node
+    restart: unless-stopped
+    volumes:
+      - ./client:/app
+      - /app/node_modules/
+    networks:
+      - app-schedule
+
+  db:
+    image: mysql:8.0.32
+    container_name: schedule-db
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - ./volumes/mysql:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: schedule-calls
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: veryhard123
+      MYSQL_ROOT_PASSWORD: veryhard123
+    ports:
+      - "3306:3306"
+    networks:
+      - app-schedule
+
+networks:
+  app-schedule:
+    driver: bridge
