@@ -34,8 +34,8 @@ class Meetings extends Model
         return $this->belongsToMany(
             Customer::class,
             'meeting_customers',
-            'customer_id',
-            'meeting_id'
+            'meeting_id',
+            'customer_id'
         );
     }
 }
